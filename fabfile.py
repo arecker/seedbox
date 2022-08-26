@@ -1,3 +1,4 @@
+import collections
 import logging
 import pathlib
 import sys
@@ -28,14 +29,32 @@ class Runner:
             self.connection.put()
 
 
+def load_sudo_password():
+    sudo_path = pathlib.Path('secrets/sudo')
+    assert sudo_path.is_file(), f'{sudo_path} does not exist!'
+    logging.info('reading sudo password from %s', sudo_path)
+    with sudo_path.open('r') as f:
+        return f.read().strip()
+
+
+VPNCreds = collections.namedtuple('VPNCreds', ['user', 'password'])
+
+
+def load_vpn_secret():
+    creds_path = pathlib.Path('secrets/pia')
+    assert creds_path.is_file(), f'{creds_path} does not exist!'
+    logging.info('reading vpn password from %s', creds_path)
+    with creds_path.open('r') as f:
+        contents = f.read().strip().splitlines()
+        assert len(
+            contents
+        ) == 2, f'{creds_path} should have 2 lines, not {len(contents)}'
+        return VPNCreds(user=contents[1][7:].strip(), password=contents[0])
+
+
 @fabric.task
 def apply(c):
-    sudo_path = pathlib.Path('./.sudo-password')
-    assert sudo_path.is_file(), './.sudo-password does not exist!'
-
-    logging.info('setting sudo password from %s', sudo_path)
-    with sudo_path.open('r') as f:
-        runner = Runner(connection=c, sudo=f.read().strip())
+    runner = Runner(connection=c, sudo=load_sudo_password())
 
     logger.info('updating packages')
     runner.sudo('apt-get update')
@@ -47,3 +66,5 @@ def apply(c):
         'rsync',
     ])
     runner.sudo(f'apt-get install -y {packages}')
+
+    vpn_creds = load_vpn_secret()

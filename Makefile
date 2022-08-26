@@ -6,10 +6,15 @@ PIP_FLAGS := --quiet --no-cache-dir
 
 FABRIC := $(PYENV)/bin/fab
 FABRIC_FLAGS := -H 10.0.0.18
-FABRIC_SUDO := ./.sudo-password
+
+SECRETS = $(addprefix secrets/, sudo pia)
 
 .PHONY: all
-all: run
+all: $(SECRETS) $(FABRIC) run
+
+secrets/%:
+	@echo "==> seeding secret $*"
+	pass $* > $@
 
 .PHONY: run
 run: $(FABRIC)
@@ -19,11 +24,6 @@ run: $(FABRIC)
 $(FABRIC): $(PIP) $(FABRIC_SUDO)
 	@echo "==> installing fabric"
 	$(PIP) install $(PIP_FLAGS) fabric
-
-$(FABRIC_SUDO):
-	@echo "==> seeding sudo password"
-	pass sudo > $@
-	chmod 700 $@
 
 $(PIP): $(PYTHON)
 	@echo "==> upgrading pip"
@@ -37,4 +37,4 @@ $(PYTHON):
 clean:
 	@echo "==> cleaning project"
 	rm -rf $(PYENV)
-	rm -f $(FABRIC_SUDO)
+	rm -f $(SECRETS)
