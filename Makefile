@@ -12,7 +12,7 @@ FABRIC_SUDO := ./.sudo-password
 all: run
 
 .PHONY: run
-run: $(FABCRIC)
+run: $(FABRIC)
 	@echo "==> running fabfile"
 	$(FABRIC) apply $(FABRIC_FLAGS)
 
@@ -28,7 +28,7 @@ $(FABRIC_SUDO):
 
 $(PIP): $(PYTHON)
 	@echo "==> upgrading pip"
-	$(PIP) install $(PIP_FLAGS) --upgrade pip
+	$@ install $(PIP_FLAGS) --upgrade pip
 
 $(PYTHON):
 	@echo "==> creating python environment"
