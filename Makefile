@@ -6,13 +6,25 @@ PIP_FLAGS := --quiet --no-cache-dir
 
 FABRIC := $(PYENV)/bin/fab
 FABRIC_FLAGS := -H 10.0.0.18
+FABRIC_SUDO := ./.sudo-password
 
 .PHONY: all
-all: $(FABRIC) run
+all: run
 
-$(FABRIC): $(PIP)
+.PHONY: run
+run: $(FABCRIC)
+	@echo "==> running fabfile"
+	$(FABRIC) apply $(FABRIC_FLAGS)
+
+
+$(FABRIC): $(PIP) $(FABRIC_SUDO)
 	@echo "==> installing fabric"
 	$(PIP) install $(PIP_FLAGS) fabric
+
+$(FABRIC_SUDO):
+	@echo "==> seeding sudo password"
+	pass sudo > $@
+	chmod 700 $@
 
 $(PIP): $(PYTHON)
 	@echo "==> upgrading pip"
@@ -26,8 +38,4 @@ $(PYTHON):
 clean:
 	@echo "==> cleaning project"
 	rm -rf $(PYENV)
-
-.PHONY: run
-run:
-	@echo "==> running fabfile"
-	$(FABRIC) $(FABRIC_FLAGS) apply
+	rm -f $(FABRIC_SUDO)
