@@ -16,7 +16,6 @@ run: $(FABRIC)
 	@echo "==> running fabfile"
 	$(FABRIC) apply $(FABRIC_FLAGS)
 
-
 $(FABRIC): $(PIP) $(FABRIC_SUDO)
 	@echo "==> installing fabric"
 	$(PIP) install $(PIP_FLAGS) fabric
